@@ -1,3 +1,806 @@
-<p>Hello 大家好</p>
-<p>我是，这是我的个人网站。 </p>
-<p>很高兴你来到这里，I love you!
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Paper Trail — 论文精读笔记</title>
+  <meta name="description" content="记录机器学习、NLP 与计算机视觉领域的论文精读笔记与个人思考。" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─────────────── Design Tokens ─────────────── */
+    :root {
+      --bg:           #EEF2F8;
+      --bg-2:         #E4EAF4;
+      --surface:      #FFFFFF;
+      --surface-2:    #F3F6FC;
+      --primary:      #1B3F7F;
+      --primary-lt:   #3B6CC7;
+      --accent:       #E8500A;
+      --text:         #1A202C;
+      --text-muted:   #5A6A82;
+      --border:       #D0D9EA;
+      --border-lt:    #E8EEF8;
+
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-body:    'Lora', Georgia, serif;
+      --font-mono:    'JetBrains Mono', monospace;
+
+      --radius:    10px;
+      --radius-sm: 5px;
+      --ease:      cubic-bezier(.4,0,.2,1);
+      --t:         .22s;
+
+      --shadow:    0 1px 2px rgba(27,63,127,.06), 0 3px 12px rgba(27,63,127,.07);
+      --shadow-up: 0 4px 16px rgba(27,63,127,.13), 0 8px 32px rgba(27,63,127,.09);
+    }
+    [data-theme="dark"] {
+      --bg:           #0D1525;
+      --bg-2:         #111B2E;
+      --surface:      #172035;
+      --surface-2:    #1C2840;
+      --primary:      #6B9EFF;
+      --primary-lt:   #93BCFF;
+      --accent:       #FF7042;
+      --text:         #E2E8F8;
+      --text-muted:   #7E95B8;
+      --border:       #263354;
+      --border-lt:    #1E2E4A;
+      --shadow:    0 1px 2px rgba(0,0,0,.35), 0 3px 12px rgba(0,0,0,.3);
+      --shadow-up: 0 4px 16px rgba(0,0,0,.45), 0 8px 32px rgba(0,0,0,.35);
+    }
+
+    /* ─────────────── Base ─────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      transition: background var(--t) var(--ease), color var(--t) var(--ease);
+    }
+    a { color: inherit; text-decoration: none; }
+    button { cursor: pointer; }
+
+    /* ─────────────── Nav ─────────────── */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem;
+      background: rgba(238,242,248,.88);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      transition: background var(--t) var(--ease), border-color var(--t) var(--ease);
+    }
+    [data-theme="dark"] .nav { background: rgba(13,21,37,.88); }
+
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--font-display);
+      font-weight: 700; font-size: .95rem;
+      color: var(--text);
+    }
+    .nav-brandmark {
+      width: 30px; height: 30px;
+      background: var(--primary);
+      border-radius: 7px;
+      display: grid; place-items: center;
+      color: #fff;
+      font-size: 13px; font-weight: 700; letter-spacing: -.5px;
+    }
+    .nav-brandmark span { line-height: 1; }
+    .nav-name em { font-style: normal; color: var(--primary); }
+
+    .nav-right {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .nav-gh {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: var(--radius-sm);
+      font-family: var(--font-display); font-size: .82rem; font-weight: 500;
+      color: var(--text-muted);
+      transition: color var(--t) var(--ease), background var(--t) var(--ease);
+    }
+    .nav-gh:hover { color: var(--primary); background: var(--surface-2); }
+    .nav-gh .label { display: none; }
+    @media (min-width: 480px) { .nav-gh .label { display: inline; } }
+
+    .nav-theme {
+      width: 34px; height: 34px; border: none;
+      background: var(--surface-2);
+      border-radius: 50%;
+      display: grid; place-items: center;
+      color: var(--text-muted);
+      transition: background var(--t) var(--ease), color var(--t) var(--ease);
+    }
+    .nav-theme:hover { background: var(--border); color: var(--text); }
+    .nav-theme svg { pointer-events: none; }
+
+    /* ─────────────── Hero ─────────────── */
+    .hero {
+      max-width: 860px; margin: 0 auto;
+      padding: 72px 2rem 52px;
+    }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-family: var(--font-mono); font-size: .75rem;
+      color: var(--primary);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 3px 12px; border-radius: 20px;
+      margin-bottom: 22px;
+    }
+    .hero-tag-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent);
+      animation: blink 2.4s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5.5vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1.18; letter-spacing: -.03em;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+    .hero h1 .hl { color: var(--primary); }
+
+    .hero-sub {
+      font-size: 1.05rem; color: var(--text-muted);
+      max-width: 560px; line-height: 1.8;
+      margin-bottom: 36px;
+    }
+
+    .hero-pills {
+      display: flex; flex-wrap: wrap; gap: 10px;
+    }
+    .hero-pill {
+      font-family: var(--font-display); font-size: .78rem; font-weight: 500;
+      padding: 5px 14px; border-radius: 20px;
+      border: 1.5px solid var(--border);
+      color: var(--text-muted);
+      background: var(--surface);
+      cursor: pointer;
+      transition: all var(--t) var(--ease);
+    }
+    .hero-pill:hover,
+    .hero-pill.active {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--surface-2);
+    }
+    .hero-pill.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    /* ─────────────── Search Bar ─────────────── */
+    .search-bar {
+      max-width: 860px; margin: 0 auto;
+      padding: 0 2rem 28px;
+      position: relative;
+    }
+    .search-bar svg {
+      position: absolute; left: calc(2rem + 14px); top: 50%; transform: translateY(-50%);
+      color: var(--text-muted); pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      padding: 11px 16px 11px 42px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-family: var(--font-display); font-size: .9rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color var(--t) var(--ease), box-shadow var(--t) var(--ease);
+    }
+    .search-input::placeholder { color: var(--text-muted); }
+    .search-input:focus {
+      border-color: var(--primary-lt);
+      box-shadow: 0 0 0 3px rgba(59,108,199,.15);
+    }
+
+    /* ─────────────── List header ─────────────── */
+    .list-head {
+      max-width: 860px; margin: 0 auto;
+      padding: 0 2rem 14px;
+      display: flex; align-items: baseline; gap: 8px;
+    }
+    .list-count {
+      font-family: var(--font-mono); font-size: .78rem;
+      color: var(--text-muted);
+    }
+    .list-count strong { color: var(--text); font-weight: 500; }
+
+    /* ─────────────── Paper List ─────────────── */
+    .papers {
+      max-width: 860px; margin: 0 auto;
+      padding: 0 2rem 80px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+
+    /* ─────────────── Paper Card ─────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+      transition: transform var(--t) var(--ease),
+                  box-shadow var(--t) var(--ease),
+                  border-color var(--t) var(--ease);
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-up);
+      border-color: var(--border);
+    }
+
+    /* Colored domain stripe across the top */
+    .card-stripe {
+      height: 3px;
+      width: 100%;
+    }
+
+    .card-inner {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 0;
+    }
+
+    /* Left column: year watermark */
+    .card-year-col {
+      padding: 22px 0 22px 20px;
+      display: flex; flex-direction: column; align-items: flex-start;
+      position: relative;
+    }
+    .card-year-big {
+      font-family: var(--font-display);
+      font-size: 2.6rem; font-weight: 800;
+      line-height: 1; letter-spacing: -.04em;
+      color: var(--primary);
+      opacity: .12;
+      user-select: none;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: rotate(180deg);
+    }
+
+    /* Right column: content */
+    .card-content {
+      padding: 20px 22px 20px 10px;
+      min-width: 0;
+    }
+
+    .card-tags {
+      display: flex; flex-wrap: wrap; gap: 5px;
+      margin-bottom: 9px;
+    }
+    .tag {
+      font-family: var(--font-display);
+      font-size: .68rem; font-weight: 600;
+      padding: 2px 9px; border-radius: 10px;
+      color: #fff; letter-spacing: .02em;
+      white-space: nowrap;
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 1.05rem; font-weight: 600;
+      line-height: 1.45; letter-spacing: -.015em;
+      color: var(--text);
+      margin-bottom: 5px;
+    }
+    .card-authors {
+      font-family: var(--font-display);
+      font-size: .8rem; color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+    .card-venue {
+      font-family: var(--font-mono);
+      font-size: .74rem; color: var(--primary);
+      margin-bottom: 14px;
+      opacity: .85;
+    }
+
+    /* Abstract */
+    .abstract-wrap { position: relative; }
+    .abstract-text {
+      font-size: .88rem; color: var(--text-muted); line-height: 1.78;
+      overflow: hidden;
+      transition: max-height .38s var(--ease);
+    }
+    .abstract-text.collapsed {
+      max-height: 4.6em;
+      -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+      mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+    }
+    .abstract-text.expanded {
+      max-height: 600px;
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+    .abstract-btn {
+      margin-top: 5px;
+      background: none; border: none; padding: 3px 0;
+      font-family: var(--font-display); font-size: .8rem; font-weight: 500;
+      color: var(--primary);
+      display: flex; align-items: center; gap: 4px;
+      transition: color var(--t) var(--ease);
+    }
+    .abstract-btn:hover { color: var(--accent); }
+    .abstract-btn svg { transition: transform var(--t) var(--ease); }
+    .abstract-btn[data-open="true"] svg { transform: rotate(180deg); }
+
+    /* Notes */
+    .card-note {
+      margin-top: 12px;
+      padding: 11px 14px;
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--accent);
+      font-size: .84rem; line-height: 1.7;
+      color: var(--text);
+    }
+    .card-note-label {
+      font-family: var(--font-mono); font-size: .68rem;
+      color: var(--accent); font-weight: 500;
+      display: block; margin-bottom: 4px; letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    /* Links */
+    .card-links {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-top: 14px;
+    }
+    .card-link {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 14px; border-radius: var(--radius-sm);
+      font-family: var(--font-display); font-size: .78rem; font-weight: 500;
+      transition: all var(--t) var(--ease);
+      white-space: nowrap;
+    }
+    .card-link-pdf {
+      background: var(--primary);
+      color: #fff;
+    }
+    .card-link-pdf:hover { background: var(--primary-lt); transform: translateY(-1px); }
+    .card-link-code {
+      border: 1.5px solid var(--border);
+      color: var(--text-muted);
+    }
+    .card-link-code:hover {
+      border-color: var(--primary-lt);
+      color: var(--primary);
+      background: var(--surface-2);
+    }
+
+    /* ─────────────── Empty State ─────────────── */
+    .empty {
+      text-align: center;
+      padding: 60px 24px;
+      color: var(--text-muted);
+    }
+    .empty svg { opacity: .25; margin-bottom: 14px; }
+    .empty p { font-family: var(--font-display); font-size: .95rem; }
+
+    /* ─────────────── Footer ─────────────── */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 2rem;
+      text-align: center;
+      font-family: var(--font-display); font-size: .8rem;
+      color: var(--text-muted);
+    }
+    .footer a { color: var(--primary); }
+    .footer a:hover { text-decoration: underline; }
+
+    /* ─────────────── Utilities ─────────────── */
+    .hidden { display: none !important; }
+
+    /* ─────────────── Mobile ─────────────── */
+    @media (max-width: 580px) {
+      .nav { padding: 0 1rem; }
+      .hero, .search-bar, .list-head, .papers { padding-left: 1rem; padding-right: 1rem; }
+      .search-bar svg { left: calc(1rem + 14px); }
+      .hero { padding-top: 48px; padding-bottom: 40px; }
+      .card-inner { grid-template-columns: 50px 1fr; }
+      .card-year-big { font-size: 2rem; }
+      .card-content { padding: 16px 16px 16px 8px; }
+      .card-title { font-size: .97rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== Navbar ===== -->
+<nav class="nav">
+  <a href="#" class="nav-brand">
+    <div class="nav-brandmark"><span>P</span></div>
+    <span class="nav-name">Paper<em>Trail</em></span>
+  </a>
+  <div class="nav-right">
+    <!-- 🔧 把下面的链接换成你的 GitHub 仓库地址 -->
+    <a href="https://github.com/YOUR_USERNAME/YOUR_REPO" target="_blank" rel="noopener" class="nav-gh">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.087.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.03-2.682-.104-.254-.447-1.27.098-2.646 0 0 .84-.269 2.75 1.025A9.56 9.56 0 0 1 12 6.836c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.376.203 2.392.1 2.646.64.698 1.026 1.591 1.026 2.682 0 3.841-2.337 4.687-4.565 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.744 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
+      </svg>
+      <span class="label">GitHub</span>
+    </a>
+    <button class="nav-theme" id="themeBtn" aria-label="切换深色/浅色模式">
+      <svg id="iconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/>
+        <line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/>
+        <line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg id="iconMoon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<!-- ===== Hero ===== -->
+<header class="hero">
+  <div class="hero-tag">
+    <span class="hero-tag-dot"></span>
+    持续更新 · 每周精读
+  </div>
+  <h1>我的<span class="hl">论文阅读</span><br>笔记与分享</h1>
+  <p class="hero-sub">
+    精读机器学习、NLP 与计算机视觉领域的重要论文，记录核心思路与个人理解，持续输入，持续成长。
+  </p>
+  <!-- Filter Pills -->
+  <div class="hero-pills" id="filterPills">
+    <button class="hero-pill active" data-filter="all">全部</button>
+    <button class="hero-pill" data-filter="nlp">NLP</button>
+    <button class="hero-pill" data-filter="cv">计算机视觉</button>
+    <button class="hero-pill" data-filter="ml">机器学习</button>
+    <button class="hero-pill" data-filter="llm">大语言模型</button>
+  </div>
+</header>
+
+<!-- ===== Search ===== -->
+<div class="search-bar">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="11" cy="11" r="8"/>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+  </svg>
+  <input type="search" class="search-input" id="searchInput"
+    placeholder="搜索论文标题、作者、关键词…" autocomplete="off" />
+</div>
+
+<!-- ===== List ===== -->
+<div class="list-head">
+  <span class="list-count" id="listCount"><strong>0</strong> 篇论文</span>
+</div>
+<main class="papers" id="paperList"></main>
+<div class="empty hidden" id="emptyState">
+  <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+  </svg>
+  <p>没有找到匹配的论文，换个关键词试试？</p>
+</div>
+
+<!-- ===== Footer ===== -->
+<footer class="footer">
+  <p>
+    用 ♥ 构建 · 托管于
+    <a href="https://pages.github.com" target="_blank" rel="noopener">GitHub Pages</a>
+    ·
+    <!-- 🔧 换成你自己的仓库链接 -->
+    <a href="https://github.com/YOUR_USERNAME/YOUR_REPO" target="_blank" rel="noopener">查看源码</a>
+  </p>
+</footer>
+
+<!-- ===================================================
+  📝 HOW TO ADD A NEW PAPER
+  在 papers 数组里添加一个对象，字段说明如下：
+
+  {
+    title:      论文标题（必填）
+    authors:    作者，如 "Vaswani, A. et al."（必填）
+    venue:      发表会议/期刊，如 "NeurIPS 2017"（必填）
+    year:       发表年份 Number（必填）
+    tags:       过滤标签数组，可选值: "nlp" | "cv" | "ml" | "llm"（必填）
+    tagLabels:  显示在卡片上的标签文字数组（必填）
+    abstract:   论文摘要原文（必填）
+    note:       你的个人笔记和思考（可选，填 null 则不显示）
+    pdf:        PDF 或 arXiv 链接（可选，填 null 则不显示）
+    code:       代码仓库链接（可选，填 null 则不显示）
+    accent:     卡片顶部彩色条的颜色 hex（必填）
+  }
+
+  Tag colors 配置在脚本底部的 TAG_COLORS 对象里。
+=================================================== -->
+<script>
+// ─────────────────────────────────────────────
+//  📚  PAPERS DATA — 在这里添加你的论文
+// ─────────────────────────────────────────────
+const PAPERS = [
+  {
+    title: "Attention Is All You Need",
+    authors: "Vaswani, A., Shazeer, N., Parmar, N., et al.",
+    venue: "NeurIPS 2017",
+    year: 2017,
+    tags: ["nlp", "ml"],
+    tagLabels: ["NLP", "Transformer"],
+    abstract: "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks that include an encoder and a decoder. The best performing models also connect the encoder and decoder through an attention mechanism. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. Experiments on two machine translation tasks show these models to be superior in quality while being more parallelizable and requiring significantly less time to train.",
+    note: "Transformer 架构的奠基之作。Multi-head self-attention 彻底改变了序列建模的范式——不再依赖 RNN 的时序递推，而是并行地对全局依赖建模。positional encoding 的设计也值得细看。",
+    pdf: "https://arxiv.org/abs/1706.03762",
+    code: "https://github.com/jadore801120/attention-is-all-you-need-pytorch",
+    accent: "#1B3F7F"
+  },
+  {
+    title: "Language Models are Few-Shot Learners (GPT-3)",
+    authors: "Brown, T., Mann, B., Ryder, N., et al.",
+    venue: "NeurIPS 2020",
+    year: 2020,
+    tags: ["llm", "nlp"],
+    tagLabels: ["LLM", "GPT", "In-Context Learning"],
+    abstract: "We demonstrate that scaling language models greatly improves task-agnostic, few-shot performance, sometimes even reaching competitiveness with prior state-of-the-art fine-tuning approaches. Specifically, we train GPT-3, an autoregressive language model with 175 billion parameters, and test its performance in the few-shot setting. For all tasks, GPT-3 is applied without any gradient updates or fine-tuning, with tasks and few-shot demonstrations specified purely via text interaction with the model.",
+    note: "In-context learning 的突破性工作。175B 参数下出现的涌现能力让人印象深刻，也正式引爆了大家对规模定律的热情。理解 prompt 设计对 few-shot 效果的影响是读这篇的收获之一。",
+    pdf: "https://arxiv.org/abs/2005.14165",
+    code: null,
+    accent: "#6D28D9"
+  },
+  {
+    title: "An Image is Worth 16×16 Words: Transformers for Image Recognition at Scale (ViT)",
+    authors: "Dosovitskiy, A., Beyer, L., Kolesnikov, A., et al.",
+    venue: "ICLR 2021",
+    year: 2021,
+    tags: ["cv", "ml"],
+    tagLabels: ["Vision Transformer", "图像分类"],
+    abstract: "While the Transformer architecture has become the de-facto standard for natural language processing tasks, its applications to computer vision remain limited. We show that this reliance on CNNs is not necessary and a pure transformer applied directly to sequences of image patches can perform very well on image classification tasks. When pre-trained on large amounts of data and transferred to multiple mid-sized or small image recognition benchmarks, Vision Transformer (ViT) attains excellent results compared to state-of-the-art convolutional networks.",
+    note: "把图像切成 16×16 的 patch，展平后当 token 喂给 Transformer——想法简单到令人惊讶，效果却超越了 CNN 最佳基线。关键在于大规模预训练：数据量不够时 ViT 反而不如 ResNet，这个 trade-off 很有意思。",
+    pdf: "https://arxiv.org/abs/2010.11929",
+    code: "https://github.com/google-research/vision_transformer",
+    accent: "#047857"
+  },
+  {
+    title: "Denoising Diffusion Probabilistic Models (DDPM)",
+    authors: "Ho, J., Jain, A., Abbeel, P.",
+    venue: "NeurIPS 2020",
+    year: 2020,
+    tags: ["cv", "ml"],
+    tagLabels: ["扩散模型", "生成模型"],
+    abstract: "We present high quality image synthesis results using diffusion probabilistic models, a class of latent variable models inspired by considerations from nonequilibrium thermodynamics. Our best results are obtained by training on a weighted variational bound designed according to a novel connection between diffusion probabilistic models and denoising score matching with Langevin dynamics, and our models naturally admit a progressive lossy decompression scheme that can be interpreted as a generalization of autoregressive decoding.",
+    note: "扩散模型在图像生成上的奠基之作。前向过程逐步加噪（马尔可夫链），反向过程学习去噪——训练目标最终化简为一个非常干净的 MSE loss。采样质量极高，理解 DDPM 是入门 Stable Diffusion 的必要前置。",
+    pdf: "https://arxiv.org/abs/2006.11239",
+    code: "https://github.com/hojonathanho/diffusion",
+    accent: "#B91C1C"
+  },
+  {
+    title: "LoRA: Low-Rank Adaptation of Large Language Models",
+    authors: "Hu, E.J., Shen, Y., Wallis, P., et al.",
+    venue: "ICLR 2022",
+    year: 2022,
+    tags: ["llm", "nlp"],
+    tagLabels: ["LLM", "高效微调", "PEFT"],
+    abstract: "We propose Low-Rank Adaptation, or LoRA, which freezes the pretrained model weights and injects trainable rank decomposition matrices into each layer of the Transformer architecture, greatly reducing the number of trainable parameters for downstream tasks. Compared to GPT-3 175B fine-tuned with Adam, LoRA can reduce the number of trainable parameters by 10,000 times and the GPU memory requirement by 3 times.",
+    note: "极其实用！冻结原始权重，只在 attention 层旁边插入低秩矩阵 A×B，可训练参数降至原来的 0.01% 量级，性能却几乎无损。现在已成为开源社区 fine-tuning 的标配方案，值得把推导过程完整手推一遍。",
+    pdf: "https://arxiv.org/abs/2106.09685",
+    code: "https://github.com/microsoft/LoRA",
+    accent: "#D97706"
+  },
+  {
+    title: "Mamba: Linear-Time Sequence Modeling with Selective State Spaces",
+    authors: "Gu, A., Dao, T.",
+    venue: "COLM 2024",
+    year: 2024,
+    tags: ["ml", "nlp"],
+    tagLabels: ["SSM", "序列建模", "高效推理"],
+    abstract: "Foundation models are almost universally based on the Transformer architecture and its core attention module. Many subquadratic-time architectures have been developed to address Transformers' computational inefficiency on long sequences, but have not performed as well as attention on important modalities such as language. We identify that a key weakness of such models is their inability to perform content-based reasoning, and propose a selection mechanism to address this. The resulting architecture, Mamba, achieves Transformer-quality performance while scaling linearly in sequence length.",
+    note: "对 Transformer 二次复杂度的有力挑战。Selective SSM 的核心创新是让矩阵参数随输入内容动态变化（selective），既保留了 RNN 推理高效的优点，又实现了内容感知的长距离依赖。是 2024 年最值得关注的架构方向之一。",
+    pdf: "https://arxiv.org/abs/2312.00752",
+    code: "https://github.com/state-spaces/mamba",
+    accent: "#0E7490"
+  }
+];
+
+// ─────────────────────────────────────────────
+//  🎨  TAG COLORS — 可以在这里自定义标签颜色
+// ─────────────────────────────────────────────
+const TAG_COLORS = {
+  "NLP":              "#1B3F7F",
+  "Transformer":      "#3B6CC7",
+  "LLM":              "#6D28D9",
+  "GPT":              "#7C3AED",
+  "In-Context Learning": "#5B21B6",
+  "Vision Transformer": "#047857",
+  "图像分类":          "#059669",
+  "扩散模型":          "#B91C1C",
+  "生成模型":          "#DC2626",
+  "高效微调":          "#B45309",
+  "PEFT":             "#D97706",
+  "SSM":              "#0E7490",
+  "序列建模":          "#0891B2",
+  "高效推理":          "#06B6D4",
+};
+
+// ─────────────────────────────────────────────
+//  🔧  State
+// ─────────────────────────────────────────────
+let activeFilter = 'all';
+let searchQuery  = '';
+
+function filteredPapers() {
+  return PAPERS.filter(p => {
+    const tagOk    = activeFilter === 'all' || p.tags.includes(activeFilter);
+    const searchOk = !searchQuery ||
+      (p.title + ' ' + p.authors + ' ' + p.tagLabels.join(' '))
+        .toLowerCase().includes(searchQuery);
+    return tagOk && searchOk;
+  });
+}
+
+// ─────────────────────────────────────────────
+//  🃏  Render
+// ─────────────────────────────────────────────
+function renderCards() {
+  const list    = document.getElementById('paperList');
+  const empty   = document.getElementById('emptyState');
+  const count   = document.getElementById('listCount');
+  const results = filteredPapers();
+
+  list.innerHTML = '';
+  count.innerHTML = `<strong>${results.length}</strong> 篇论文`;
+  empty.classList.toggle('hidden', results.length > 0);
+
+  results.forEach(p => {
+    const card = document.createElement('article');
+    card.className = 'card';
+
+    const tagsHtml = p.tagLabels.map(t =>
+      `<span class="tag" style="background:${TAG_COLORS[t] || '#64748B'}">${t}</span>`
+    ).join('');
+
+    const noteHtml = p.note
+      ? `<div class="card-note">
+           <span class="card-note-label">💡 个人笔记</span>
+           ${p.note}
+         </div>` : '';
+
+    const pdfBtn = p.pdf
+      ? `<a href="${p.pdf}" target="_blank" rel="noopener" class="card-link card-link-pdf">
+           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+             <polyline points="14 2 14 8 20 8"/>
+           </svg>
+           论文 / arXiv
+         </a>` : '';
+
+    const codeBtn = p.code
+      ? `<a href="${p.code}" target="_blank" rel="noopener" class="card-link card-link-code">
+           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+             <path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.087.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.03-2.682-.104-.254-.447-1.27.098-2.646 0 0 .84-.269 2.75 1.025A9.56 9.56 0 0 1 12 6.836c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.376.203 2.392.1 2.646.64.698 1.026 1.591 1.026 2.682 0 3.841-2.337 4.687-4.565 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.744 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
+           </svg>
+           代码
+         </a>` : '';
+
+    const uid = `abs-${p.year}-${p.title.slice(0,8).replace(/\s/g,'').replace(/[^\w]/g,'_')}`;
+
+    card.innerHTML = `
+      <div class="card-stripe" style="background:${p.accent}"></div>
+      <div class="card-inner">
+        <div class="card-year-col">
+          <span class="card-year-big" aria-hidden="true">${p.year}</span>
+        </div>
+        <div class="card-content">
+          <div class="card-tags">${tagsHtml}</div>
+          <h2 class="card-title">${p.title}</h2>
+          <p class="card-authors">${p.authors}</p>
+          <p class="card-venue">${p.venue}</p>
+          <div class="abstract-wrap">
+            <div class="abstract-text collapsed" id="${uid}">${p.abstract}</div>
+            <button class="abstract-btn" data-uid="${uid}" data-open="false">
+              展开摘要
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+          </div>
+          ${noteHtml}
+          <div class="card-links">${pdfBtn}${codeBtn}</div>
+        </div>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  🔄  Interactions
+// ─────────────────────────────────────────────
+
+// Abstract expand/collapse (event delegation)
+document.getElementById('paperList').addEventListener('click', e => {
+  const btn = e.target.closest('.abstract-btn');
+  if (!btn) return;
+  const uid  = btn.dataset.uid;
+  const el   = document.getElementById(uid);
+  const open = btn.dataset.open === 'true';
+
+  el.classList.toggle('collapsed', open);
+  el.classList.toggle('expanded', !open);
+  btn.dataset.open = String(!open);
+  btn.innerHTML = open
+    ? `展开摘要 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>`
+    : `收起摘要 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>`;
+  btn.dataset.open = String(!open);
+});
+
+// Filter pills
+document.getElementById('filterPills').addEventListener('click', e => {
+  const pill = e.target.closest('.hero-pill');
+  if (!pill) return;
+  activeFilter = pill.dataset.filter;
+  document.querySelectorAll('.hero-pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  renderCards();
+});
+
+// Search
+let searchTimer;
+document.getElementById('searchInput').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    searchQuery = e.target.value.trim().toLowerCase();
+    renderCards();
+  }, 180);
+});
+
+// ─────────────────────────────────────────────
+//  🌙  Dark Mode
+// ─────────────────────────────────────────────
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+let isDark = localStorage.getItem('theme') === 'dark'
+  || (localStorage.getItem('theme') === null && prefersDark.matches);
+
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('iconSun').style.display  = isDark ? 'none'  : 'block';
+  document.getElementById('iconMoon').style.display = isDark ? 'block' : 'none';
+}
+
+document.getElementById('themeBtn').addEventListener('click', () => {
+  isDark = !isDark;
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  applyTheme();
+});
+
+applyTheme();
+
+// ─────────────────────────────────────────────
+//  🚀  Init
+// ─────────────────────────────────────────────
+renderCards();
+</script>
+</body>
+</html>
