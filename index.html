@@ -376,13 +376,35 @@
     .list-head {
       max-width: 860px; margin: 0 auto;
       padding: 0 2rem 14px;
-      display: flex; align-items: baseline; gap: 8px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px;
     }
     .list-count {
       font-family: var(--font-mono); font-size: .78rem;
       color: var(--text-muted);
     }
     .list-count strong { color: var(--text); font-weight: 500; }
+    .sort-control {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--font-display);
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .sort-control select {
+      min-height: 32px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--text);
+      font: 600 .78rem var(--font-display);
+      padding: 5px 28px 5px 9px;
+      outline: none;
+    }
+    .sort-control select:focus {
+      border-color: var(--primary-lt);
+      box-shadow: 0 0 0 3px rgba(59,108,199,.15);
+    }
 
     /* ─────────────── Paper List ─────────────── */
     .papers {
@@ -638,13 +660,7 @@
     精读机器学习、NLP 与计算机视觉领域的重要论文，记录核心思路与个人理解，持续输入，持续成长。
   </p>
   <!-- Filter Pills -->
-  <div class="hero-pills" id="filterPills">
-    <button class="hero-pill active" data-filter="all">全部</button>
-    <button class="hero-pill" data-filter="nlp">NLP</button>
-    <button class="hero-pill" data-filter="cv">计算机视觉</button>
-    <button class="hero-pill" data-filter="ml">机器学习</button>
-    <button class="hero-pill" data-filter="llm">大语言模型</button>
-  </div>
+  <div class="hero-pills" id="filterPills" aria-label="论文分类筛选"></div>
 </header>
 
 <!-- ===== Search ===== -->
@@ -722,18 +738,14 @@
             <input name="accentText" type="text" value="#1B3F7F" aria-label="色条颜色值" />
           </div>
         </div>
-        <fieldset class="form-field form-field-full">
-          <legend class="tag-group-label">分类</legend>
-          <div class="tag-options">
-            <label class="tag-check"><input type="checkbox" name="tags" value="nlp" />NLP</label>
-            <label class="tag-check"><input type="checkbox" name="tags" value="cv" />计算机视觉</label>
-            <label class="tag-check"><input type="checkbox" name="tags" value="ml" />机器学习</label>
-            <label class="tag-check"><input type="checkbox" name="tags" value="llm" />大语言模型</label>
-          </div>
-        </fieldset>
         <div class="form-field form-field-full">
-          <label for="paperLabels">显示标签</label>
-          <input id="paperLabels" name="tagLabels" type="text" placeholder="Transformer, RAG, 多模态" autocomplete="off" />
+          <label for="paperCategories">分类</label>
+          <input id="paperCategories" name="categories" type="text"
+            placeholder="NLP, 多模态, 信息检索" required autocomplete="off" />
+        </div>
+        <div class="form-field form-field-full">
+          <label for="paperLabels">主题标签</label>
+          <input id="paperLabels" name="tagLabels" type="text" placeholder="Transformer, RAG, Long Context" autocomplete="off" />
         </div>
         <div class="form-field form-field-full">
           <label for="paperAbstract">摘要</label>
@@ -765,6 +777,15 @@
 <!-- ===== List ===== -->
 <div class="list-head">
   <span class="list-count" id="listCount"><strong>0</strong> 篇论文</span>
+  <label class="sort-control" for="sortSelect">
+    排序
+    <select id="sortSelect">
+      <option value="year-desc">年份新到旧</option>
+      <option value="year-asc">年份旧到新</option>
+      <option value="title-asc">标题 A-Z</option>
+      <option value="venue-asc">会议 / 期刊</option>
+    </select>
+  </label>
 </div>
 <main class="papers" id="paperList"></main>
 <div class="empty hidden" id="emptyState">
@@ -793,16 +814,28 @@
 // ─────────────────────────────────────────────
 const STORAGE_KEY = 'paperTrail:userPapers:v1';
 const DEFAULT_ACCENT = '#1B3F7F';
-const TAG_LABEL_BY_FILTER = {
+const LEGACY_CATEGORY_LABELS = {
   nlp: 'NLP',
   cv: '计算机视觉',
   ml: '机器学习',
-  llm: 'LLM'
+  llm: '大语言模型'
 };
-const ALLOWED_TAGS = Object.keys(TAG_LABEL_BY_FILTER);
+const AUTO_TAG_COLORS = [
+  '#1B3F7F',
+  '#047857',
+  '#6D28D9',
+  '#B91C1C',
+  '#D97706',
+  '#0E7490',
+  '#BE185D',
+  '#3730A3',
+  '#4D7C0F',
+  '#9F1239'
+];
 
 let activeFilter = 'all';
 let searchQuery  = '';
+let sortMode     = 'year-desc';
 let userPapers   = loadUserPapers();
 
 function readStorage(key) {
@@ -841,7 +874,7 @@ function unique(values) {
 
 function splitLabels(value) {
   return String(value ?? '')
-    .split(',')
+    .split(/[,，、]/)
     .map(item => item.trim())
     .filter(Boolean);
 }
@@ -865,10 +898,20 @@ function safeHttpUrl(value) {
   }
 }
 
-function normalizeTags(tags) {
+function normalizeLegacyTags(tags) {
   return Array.isArray(tags)
-    ? unique(tags).filter(tag => ALLOWED_TAGS.includes(tag))
+    ? unique(tags).filter(tag => LEGACY_CATEGORY_LABELS[tag] || tag.length > 1)
     : [];
+}
+
+function normalizeCategories(categories) {
+  return Array.isArray(categories)
+    ? unique(categories)
+    : splitLabels(categories);
+}
+
+function legacyCategories(tags) {
+  return normalizeLegacyTags(tags).map(tag => LEGACY_CATEGORY_LABELS[tag] || tag);
 }
 
 function normalizePaper(input) {
@@ -877,24 +920,26 @@ function normalizePaper(input) {
   const venue = cleanText(input?.venue);
   const abstract = cleanText(input?.abstract);
   const year = Number(input?.year);
-  const tags = normalizeTags(input?.tags);
+  const tags = normalizeLegacyTags(input?.tags);
+  const categories = unique([
+    ...normalizeCategories(input?.categories),
+    ...legacyCategories(tags)
+  ]);
   const customLabels = Array.isArray(input?.tagLabels)
     ? input.tagLabels
     : splitLabels(input?.tagLabels);
-  const tagLabels = unique([
-    ...tags.map(tag => TAG_LABEL_BY_FILTER[tag]),
-    ...customLabels
-  ]);
+  const tagLabels = unique(customLabels);
 
   if (!title || !authors || !venue || !abstract) return null;
   if (!Number.isInteger(year) || year < 1900 || year > 2100) return null;
-  if (!tags.length || !tagLabels.length) return null;
+  if (!categories.length) return null;
 
   return {
     title,
     authors,
     venue,
     year,
+    categories,
     tags,
     tagLabels,
     abstract,
@@ -923,18 +968,37 @@ function persistUserPapers() {
 }
 
 function allPapers() {
-  return [...PAPERS, ...userPapers].sort((a, b) => {
-    const yearDiff = Number(b.year || 0) - Number(a.year || 0);
+  return [...PAPERS, ...userPapers].sort(sortPapers);
+}
+
+function sortPapers(a, b) {
+  if (sortMode === 'year-asc') {
+    const yearDiff = Number(a.year || 0) - Number(b.year || 0);
     if (yearDiff) return yearDiff;
     return cleanText(a.title).localeCompare(cleanText(b.title), 'zh-CN');
-  });
+  }
+
+  if (sortMode === 'title-asc') {
+    return cleanText(a.title).localeCompare(cleanText(b.title), 'zh-CN');
+  }
+
+  if (sortMode === 'venue-asc') {
+    const venueDiff = cleanText(a.venue).localeCompare(cleanText(b.venue), 'zh-CN');
+    if (venueDiff) return venueDiff;
+    return cleanText(a.title).localeCompare(cleanText(b.title), 'zh-CN');
+  }
+
+  const yearDiff = Number(b.year || 0) - Number(a.year || 0);
+  if (yearDiff) return yearDiff;
+  return cleanText(a.title).localeCompare(cleanText(b.title), 'zh-CN');
 }
 
 function filteredPapers() {
   return allPapers().filter(p => {
+    const categories = paperCategories(p);
     const tags = Array.isArray(p.tags) ? p.tags : [];
     const labels = Array.isArray(p.tagLabels) ? p.tagLabels : [];
-    const tagOk = activeFilter === 'all' || tags.includes(activeFilter);
+    const tagOk = activeFilter === 'all' || categories.includes(activeFilter);
     const haystack = [
       p.title,
       p.authors,
@@ -942,6 +1006,7 @@ function filteredPapers() {
       p.year,
       p.abstract,
       p.note,
+      ...categories,
       ...tags,
       ...labels
     ].map(cleanText).join(' ').toLowerCase();
@@ -969,11 +1034,74 @@ function formatText(value) {
   return escapeHtml(value).replace(/\n/g, '<br>');
 }
 
+function paperCategories(paper) {
+  return unique([
+    ...normalizeCategories(paper?.categories),
+    ...legacyCategories(paper?.tags)
+  ]);
+}
+
 function paperLabels(paper) {
   const labels = Array.isArray(paper.tagLabels) ? paper.tagLabels : [];
   if (labels.length) return labels;
-  const tags = Array.isArray(paper.tags) ? paper.tags : [];
-  return tags.map(tag => TAG_LABEL_BY_FILTER[tag]).filter(Boolean);
+  return [];
+}
+
+function paperDisplayTags(paper) {
+  return unique([...paperCategories(paper), ...paperLabels(paper)]);
+}
+
+function stableColor(label) {
+  const known = TAG_COLORS[label];
+  if (known) return safeHexColor(known, '#64748B');
+
+  let hash = 0;
+  for (const char of cleanText(label)) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  }
+  return AUTO_TAG_COLORS[hash % AUTO_TAG_COLORS.length];
+}
+
+function categoryCounts() {
+  const counts = new Map();
+  allPapers().forEach(paper => {
+    paperCategories(paper).forEach(category => {
+      counts.set(category, (counts.get(category) || 0) + 1);
+    });
+  });
+
+  return Array.from(counts.entries()).sort((a, b) => {
+    const countDiff = b[1] - a[1];
+    if (countDiff) return countDiff;
+    return a[0].localeCompare(b[0], 'zh-CN');
+  });
+}
+
+function renderFilterPills() {
+  const wrap = document.getElementById('filterPills');
+  const categories = categoryCounts();
+  const hasActive = activeFilter === 'all'
+    || categories.some(([category]) => category === activeFilter);
+
+  if (!hasActive) activeFilter = 'all';
+  wrap.innerHTML = '';
+
+  const allButton = document.createElement('button');
+  allButton.className = `hero-pill${activeFilter === 'all' ? ' active' : ''}`;
+  allButton.type = 'button';
+  allButton.dataset.filter = 'all';
+  allButton.textContent = '全部';
+  wrap.appendChild(allButton);
+
+  categories.forEach(([category, count]) => {
+    const button = document.createElement('button');
+    button.className = `hero-pill${activeFilter === category ? ' active' : ''}`;
+    button.type = 'button';
+    button.dataset.filter = category;
+    button.textContent = category;
+    button.setAttribute('aria-label', `${category}，${count} 篇论文`);
+    wrap.appendChild(button);
+  });
 }
 
 function renderCards() {
@@ -997,12 +1125,12 @@ function renderCards() {
     const abstract = cleanText(p.abstract);
     const note = cleanText(p.note);
     const accent = safeHexColor(p.accent);
-    const labels = paperLabels(p);
+    const labels = paperDisplayTags(p);
     const pdfUrl = safeHttpUrl(p.pdf);
     const codeUrl = safeHttpUrl(p.code);
 
     const tagsHtml = labels.map(t =>
-      `<span class="tag" style="background:${safeHexColor(TAG_COLORS[t], '#64748B')}">${escapeHtml(t)}</span>`
+      `<span class="tag" style="background:${stableColor(t)}">${escapeHtml(t)}</span>`
     ).join('');
 
     const noteHtml = note
@@ -1085,8 +1213,14 @@ document.getElementById('filterPills').addEventListener('click', e => {
   const pill = e.target.closest('.hero-pill');
   if (!pill) return;
   activeFilter = pill.dataset.filter;
-  document.querySelectorAll('.hero-pill').forEach(p => p.classList.remove('active'));
-  pill.classList.add('active');
+  renderFilterPills();
+  renderCards();
+});
+
+// Sort
+document.getElementById('sortSelect').addEventListener('change', e => {
+  sortMode = e.target.value;
+  renderFilterPills();
   renderCards();
 });
 
@@ -1164,12 +1298,10 @@ accentTextInput.addEventListener('input', () => {
 paperForm.addEventListener('submit', e => {
   e.preventDefault();
   const formData = new FormData(paperForm);
-  const selectedTags = Array.from(
-    paperForm.querySelectorAll('input[name="tags"]:checked')
-  ).map(input => input.value);
+  const categories = splitLabels(formData.get('categories'));
 
-  if (!selectedTags.length) {
-    setStatus(formStatus, '请选择至少一个分类。', 'error');
+  if (!categories.length) {
+    setStatus(formStatus, '请填写至少一个分类。', 'error');
     return;
   }
 
@@ -1178,7 +1310,7 @@ paperForm.addEventListener('submit', e => {
     authors: formData.get('authors'),
     venue: formData.get('venue'),
     year: formData.get('year'),
-    tags: selectedTags,
+    categories,
     tagLabels: splitLabels(formData.get('tagLabels')),
     abstract: formData.get('abstract'),
     note: formData.get('note'),
@@ -1194,6 +1326,7 @@ paperForm.addEventListener('submit', e => {
 
   userPapers = [paper, ...userPapers];
   const saved = persistUserPapers();
+  renderFilterPills();
   renderCards();
   updateLocalControls();
   resetPaperForm();
@@ -1238,6 +1371,7 @@ clearLocalBtn.addEventListener('click', () => {
 
   userPapers = [];
   removeStorage(STORAGE_KEY);
+  renderFilterPills();
   renderCards();
   updateLocalControls();
   exportOutput.value = '';
@@ -1273,6 +1407,7 @@ applyTheme();
 yearInput.max = String(new Date().getFullYear() + 2);
 resetPaperForm();
 updateLocalControls();
+renderFilterPills();
 renderCards();
 </script>
 </body>
