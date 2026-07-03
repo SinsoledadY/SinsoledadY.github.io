@@ -41,25 +41,21 @@ body:
     validations:
       required: true
 
-  - type: checkboxes
+  - type: input
     id: categories
     attributes:
       label: 分类
-      description: 请至少选择一个分类。
-      options:
-        - label: NLP / 自然语言处理
-        - label: CV / 计算机视觉
-        - label: ML / 机器学习
-        - label: LLM / 大语言模型
+      description: 用逗号分隔，可自由填写。
+      placeholder: NLP, 多模态, 信息检索
+    validations:
+      required: true
 
   - type: input
     id: tag_labels
     attributes:
-      label: 显示标签
+      label: 主题标签
       description: 用逗号分隔，建议 2 到 4 个。
-      placeholder: Transformer, RAG, 多模态
-    validations:
-      required: true
+      placeholder: Transformer, RAG, Long Context
 
   - type: textarea
     id: abstract
