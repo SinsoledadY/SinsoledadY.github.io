@@ -1,0 +1,105 @@
+name: 新增论文
+description: 提交一篇希望加入 PaperTrail 的论文。
+title: "[Paper] "
+labels:
+  - paper-submission
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请尽量填写完整信息。提交后会生成一个 Issue，站点维护者审核后再加入主页数据。
+
+  - type: input
+    id: title
+    attributes:
+      label: 论文标题
+      placeholder: Attention Is All You Need
+    validations:
+      required: true
+
+  - type: input
+    id: authors
+    attributes:
+      label: 作者
+      placeholder: Vaswani, A., Shazeer, N., Parmar, N., et al.
+    validations:
+      required: true
+
+  - type: input
+    id: venue
+    attributes:
+      label: 会议 / 期刊
+      placeholder: NeurIPS 2017
+    validations:
+      required: true
+
+  - type: input
+    id: year
+    attributes:
+      label: 年份
+      placeholder: "2017"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: categories
+    attributes:
+      label: 分类
+      description: 请至少选择一个分类。
+      options:
+        - label: NLP / 自然语言处理
+        - label: CV / 计算机视觉
+        - label: ML / 机器学习
+        - label: LLM / 大语言模型
+
+  - type: input
+    id: tag_labels
+    attributes:
+      label: 显示标签
+      description: 用逗号分隔，建议 2 到 4 个。
+      placeholder: Transformer, RAG, 多模态
+    validations:
+      required: true
+
+  - type: textarea
+    id: abstract
+    attributes:
+      label: 摘要
+      description: 可以粘贴论文摘要原文。
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: note
+    attributes:
+      label: 个人笔记 / 推荐理由
+      description: 写下核心贡献、阅读收获或为什么值得加入。
+      render: text
+
+  - type: input
+    id: pdf
+    attributes:
+      label: 论文链接
+      placeholder: https://arxiv.org/abs/1706.03762
+
+  - type: input
+    id: code
+    attributes:
+      label: 代码链接
+      placeholder: https://github.com/example/project
+
+  - type: input
+    id: accent
+    attributes:
+      label: 推荐色条颜色
+      description: 可选，使用 6 位十六进制颜色。
+      placeholder: "#1B3F7F"
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 提交确认
+      options:
+        - label: 我确认以上信息尽量准确，链接不包含无关广告或恶意内容。
+          required: true
