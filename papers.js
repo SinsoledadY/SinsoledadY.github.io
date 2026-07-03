@@ -15,8 +15,8 @@
 //    authors:    "Zhang, S., Liu, Y., et al.",     ← 必填
 //    venue:      "ICML 2024",                      ← 必填（会议或期刊名）
 //    year:       2024,                             ← 必填（数字，不加引号）
-//    tags:       ["ml"],                           ← 必填，从下方可选值中选
-//    tagLabels:  ["机器学习", "自定义标签"],          ← 必填，页面显示的标签文字
+//    categories: ["机器学习", "多模态"],              ← 必填，可自由填写
+//    tagLabels:  ["Transformer", "RAG"],            ← 可选，页面显示的主题标签
 //    abstract:   "论文摘要原文...",                 ← 必填
 //    note:       "你的阅读笔记和思考。",             ← 可选，不写则填 null
 //    pdf:        "https://arxiv.org/abs/xxxx",     ← 可选，不写则填 null
@@ -24,7 +24,7 @@
 //    accent:     "#1B3F7F",                        ← 必填，卡片顶部色条颜色
 //  }
 //
-//  tags 可选值（用于筛选按钮）：
+//  旧数据里的 tags 仍然兼容，会自动映射为分类：
 //    "nlp"  →  NLP / 自然语言处理
 //    "cv"   →  计算机视觉
 //    "ml"   →  机器学习
@@ -42,6 +42,7 @@ const PAPERS = [
     authors: "Vaswani, A., Shazeer, N., Parmar, N., et al.",
     venue: "NeurIPS 2017",
     year: 2017,
+    categories: ["NLP", "机器学习"],
     tags: ["nlp", "ml"],
     tagLabels: ["NLP", "Transformer"],
     abstract: "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks that include an encoder and a decoder. The best performing models also connect the encoder and decoder through an attention mechanism. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. Experiments on two machine translation tasks show these models to be superior in quality while being more parallelizable and requiring significantly less time to train.",
@@ -55,6 +56,7 @@ const PAPERS = [
     authors: "Brown, T., Mann, B., Ryder, N., et al.",
     venue: "NeurIPS 2020",
     year: 2020,
+    categories: ["大语言模型", "NLP"],
     tags: ["llm", "nlp"],
     tagLabels: ["LLM", "GPT", "In-Context Learning"],
     abstract: "We demonstrate that scaling language models greatly improves task-agnostic, few-shot performance, sometimes even reaching competitiveness with prior state-of-the-art fine-tuning approaches. Specifically, we train GPT-3, an autoregressive language model with 175 billion parameters, and test its performance in the few-shot setting. For all tasks, GPT-3 is applied without any gradient updates or fine-tuning, with tasks and few-shot demonstrations specified purely via text interaction with the model.",
@@ -68,6 +70,7 @@ const PAPERS = [
     authors: "Dosovitskiy, A., Beyer, L., Kolesnikov, A., et al.",
     venue: "ICLR 2021",
     year: 2021,
+    categories: ["计算机视觉", "机器学习"],
     tags: ["cv", "ml"],
     tagLabels: ["Vision Transformer", "图像分类"],
     abstract: "While the Transformer architecture has become the de-facto standard for natural language processing tasks, its applications to computer vision remain limited. We show that this reliance on CNNs is not necessary and a pure transformer applied directly to sequences of image patches can perform very well on image classification tasks. When pre-trained on large amounts of data and transferred to multiple mid-sized or small image recognition benchmarks, Vision Transformer (ViT) attains excellent results compared to state-of-the-art convolutional networks.",
@@ -81,6 +84,7 @@ const PAPERS = [
     authors: "Ho, J., Jain, A., Abbeel, P.",
     venue: "NeurIPS 2020",
     year: 2020,
+    categories: ["计算机视觉", "机器学习"],
     tags: ["cv", "ml"],
     tagLabels: ["扩散模型", "生成模型"],
     abstract: "We present high quality image synthesis results using diffusion probabilistic models, a class of latent variable models inspired by considerations from nonequilibrium thermodynamics. Our best results are obtained by training on a weighted variational bound designed according to a novel connection between diffusion probabilistic models and denoising score matching with Langevin dynamics, and our models naturally admit a progressive lossy decompression scheme that can be interpreted as a generalization of autoregressive decoding.",
@@ -94,6 +98,7 @@ const PAPERS = [
     authors: "Hu, E.J., Shen, Y., Wallis, P., et al.",
     venue: "ICLR 2022",
     year: 2022,
+    categories: ["大语言模型", "NLP"],
     tags: ["llm", "nlp"],
     tagLabels: ["LLM", "高效微调", "PEFT"],
     abstract: "We propose Low-Rank Adaptation, or LoRA, which freezes the pretrained model weights and injects trainable rank decomposition matrices into each layer of the Transformer architecture, greatly reducing the number of trainable parameters for downstream tasks. Compared to GPT-3 175B fine-tuned with Adam, LoRA can reduce the number of trainable parameters by 10,000 times and the GPU memory requirement by 3 times.",
@@ -107,6 +112,7 @@ const PAPERS = [
     authors: "Gu, A., Dao, T.",
     venue: "COLM 2024",
     year: 2024,
+    categories: ["机器学习", "NLP"],
     tags: ["ml", "nlp"],
     tagLabels: ["SSM", "序列建模", "高效推理"],
     abstract: "Foundation models are almost universally based on the Transformer architecture and its core attention module. Many subquadratic-time architectures have been developed to address Transformers' computational inefficiency on long sequences, but have not performed as well as attention on important modalities such as language. We identify that a key weakness of such models is their inability to perform content-based reasoning, and propose a selection mechanism to address this. The resulting architecture, Mamba, achieves Transformer-quality performance while scaling linearly in sequence length.",
@@ -131,6 +137,7 @@ const TAG_COLORS = {
   "机器学习":             "#1B3F7F",
   "Transformer":         "#3B6CC7",
   "LLM":                 "#6D28D9",
+  "大语言模型":           "#6D28D9",
   "GPT":                 "#7C3AED",
   "In-Context Learning": "#5B21B6",
   "计算机视觉":           "#047857",
