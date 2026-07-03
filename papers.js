@@ -128,10 +128,12 @@ const PAPERS = [
 
 const TAG_COLORS = {
   "NLP":                 "#1B3F7F",
+  "机器学习":             "#1B3F7F",
   "Transformer":         "#3B6CC7",
   "LLM":                 "#6D28D9",
   "GPT":                 "#7C3AED",
   "In-Context Learning": "#5B21B6",
+  "计算机视觉":           "#047857",
   "Vision Transformer":  "#047857",
   "图像分类":             "#059669",
   "扩散模型":             "#B91C1C",
